@@ -48,7 +48,6 @@ Admin: dashboard con métricas, CRUD de usuarios/especialidades, gestión de cit
 🔐 Login & Seguridad
 
 Hash de contraseñas: Argon2id (no BCrypt).
-Parámetros recomendados:
 
 saltLen=16
 hashLen=32
@@ -73,6 +72,14 @@ MEDICO → /medico/inicio
 
 ADMIN → /admin/inicio
 
+Endpoints de auth
+
+POST /api/auth/login
+POST /api/auth/logout
+POST /api/auth/recuperar
+POST /api/auth/restablecer
+GET  /api/auth/me
+
 🧭 Rutas pre-login
 
 / (Landing mínima): logo, texto breve, botón Iniciar sesión → /auth/login
@@ -83,13 +90,8 @@ ADMIN → /admin/inicio
 
 /auth/restablecer?token=...: nueva contraseña (y confirmación)
 
-Endpoints de auth
-
-POST /api/auth/login
-POST /api/auth/logout
-POST /api/auth/recuperar
-POST /api/auth/restablecer
-GET  /api/auth/me
+[!TIP]
+Usa SameSite=Lax para UX web estándar, y Strict si priorizas seguridad sobre SSO/social login.
 
 ✅ Requerimientos funcionales
 👩‍⚕️ Paciente
@@ -391,11 +393,3 @@ notificacion(id_destinatario, leida, fecha_envio)
 Rating consistente:
 
 Servicio/trigger que recalcula medico.valoracion_promedio al insertar en valoracion.
-
-🎨 Tips visuales (para el repo)
-
-Usa badges (como arriba) para dar color y contexto rápido.
-
-Añade gifs/screenshots de los flujos principales en la carpeta /docs.
-
-Mantén esta estructura en el README con secciones plegables (<details>) si crece.
