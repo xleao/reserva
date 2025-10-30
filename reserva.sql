@@ -14,17 +14,22 @@ SET time_zone = '+00:00';
 -- SEGURIDAD / ACCESO
 -- =========================================================
 CREATE TABLE usuario (
-  id_usuario      BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  email           VARCHAR(120) NOT NULL,
-  password_hash   VARCHAR(255) NOT NULL,     -- Argon2id
-  nombres         VARCHAR(100) NOT NULL,
-  apellidos       VARCHAR(100) NOT NULL,
-  telefono        VARCHAR(20),
+  id_usuario       BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  email            VARCHAR(120) NOT NULL,
+  password_hash    VARCHAR(255) NOT NULL,     -- Argon2id
+  nombres          VARCHAR(100) NOT NULL,
+  apellidos        VARCHAR(100) NOT NULL,
+  telefono         VARCHAR(20),
   fecha_nacimiento DATE,
-  dni             VARCHAR(20),
-  foto_url        VARCHAR(255),
-  estado          ENUM('ACTIVO','INACTIVO') NOT NULL DEFAULT 'ACTIVO',
-  fecha_creacion  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  dni              VARCHAR(20),
+  foto_url         VARCHAR(255),
+  -- CAMPOS NUEVOS PARA FOTO EN BD
+  foto_blob        LONGBLOB NULL,
+  foto_mime        VARCHAR(100) NULL,
+  foto_actualizado DATETIME NULL,
+  -- FIN CAMBIOS
+  estado           ENUM('ACTIVO','INACTIVO') NOT NULL DEFAULT 'ACTIVO',
+  fecha_creacion   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id_usuario),
   UNIQUE KEY uq_usuario_email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
