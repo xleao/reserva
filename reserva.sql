@@ -183,6 +183,7 @@ CREATE TABLE cita (
   id_medico      BIGINT UNSIGNED NOT NULL,
   fecha_hora     DATETIME NULL,                                 -- NULL durante negociación
   canal          ENUM('PRESENCIAL','TELECONSULTA') NOT NULL DEFAULT 'PRESENCIAL',
+  confirmada_fecha_hora DATETIME NULL,                          -- NUEVO: fecha/hora exacta de confirmación
   motivo         TEXT,
   estado         ENUM('SOLICITADA','PROPUESTA','EN_NEGOCIACION','CONFIRMADA','CANCELADA','ATENDIDA','NO_ASISTIO') NOT NULL DEFAULT 'SOLICITADA',
   fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -268,3 +269,11 @@ INSERT INTO rol (nombre, descripcion) VALUES
   ('MEDICO','Profesional de la salud'),
   ('PACIENTE','Usuario paciente')
 ON DUPLICATE KEY UPDATE descripcion=VALUES(descripcion);
+
+-- =========================================================
+-- (OPCIONAL) MIGRACIÓN PARA BD EXISTENTE
+-- Ejecuta esto SOLO si ya tenías la tabla 'cita' sin la columna
+-- y quieres agregarla sin recrear todo.
+-- =========================================================
+-- ALTER TABLE cita
+--   ADD COLUMN IF NOT EXISTS confirmada_fecha_hora DATETIME NULL AFTER canal;
