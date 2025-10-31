@@ -182,8 +182,10 @@ CREATE TABLE cita (
   id_paciente    BIGINT UNSIGNED NOT NULL,
   id_medico      BIGINT UNSIGNED NOT NULL,
   fecha_hora     DATETIME NULL,                                 -- NULL durante negociación
+  propuesta_fecha_hora DATETIME NULL,                           -- NUEVO: última fecha/hora propuesta
+  ultima_propuesta_por ENUM('PACIENTE','MEDICO') NULL,          -- NUEVO: quién hizo la última propuesta
   canal          ENUM('PRESENCIAL','TELECONSULTA') NOT NULL DEFAULT 'PRESENCIAL',
-  confirmada_fecha_hora DATETIME NULL,                          -- NUEVO: fecha/hora exacta de confirmación
+  confirmada_fecha_hora DATETIME NULL,                          -- fecha/hora exacta de confirmación
   motivo         TEXT,
   estado         ENUM('SOLICITADA','PROPUESTA','EN_NEGOCIACION','CONFIRMADA','CANCELADA','ATENDIDA','NO_ASISTIO') NOT NULL DEFAULT 'SOLICITADA',
   fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -272,8 +274,11 @@ ON DUPLICATE KEY UPDATE descripcion=VALUES(descripcion);
 
 -- =========================================================
 -- (OPCIONAL) MIGRACIÓN PARA BD EXISTENTE
--- Ejecuta esto SOLO si ya tenías la tabla 'cita' sin la columna
--- y quieres agregarla sin recrear todo.
+-- Ejecuta esto SOLO si ya tenías la tabla 'cita' y quieres
+-- agregar las nuevas columnas sin recrear la tabla.
+-- Si tu servidor no soporta "IF NOT EXISTS", quítalo.
 -- =========================================================
 -- ALTER TABLE cita
+--   ADD COLUMN IF NOT EXISTS propuesta_fecha_hora DATETIME NULL AFTER fecha_hora,
+--   ADD COLUMN IF NOT EXISTS ultima_propuesta_por ENUM('PACIENTE','MEDICO') NULL AFTER propuesta_fecha_hora,
 --   ADD COLUMN IF NOT EXISTS confirmada_fecha_hora DATETIME NULL AFTER canal;
