@@ -94,9 +94,17 @@ CREATE TABLE preferencia_notificacion (
 -- =========================================================
 CREATE TABLE especialidad (
   id_especialidad BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  nombre      VARCHAR(120) NOT NULL,
-  descripcion VARCHAR(200),
-  activo      TINYINT(1) NOT NULL DEFAULT 1,
+  nombre          VARCHAR(120) NOT NULL,
+  descripcion     VARCHAR(200),
+
+  -- CAMPOS DE IMAGEN PARA ESPECIALIDAD
+  foto_url         VARCHAR(255),
+  foto_blob        LONGBLOB NULL,
+  foto_mime        VARCHAR(100) NULL,
+  foto_actualizado DATETIME NULL,
+  -- FIN CAMPOS DE IMAGEN
+
+  activo          TINYINT(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (id_especialidad),
   UNIQUE KEY uq_especialidad_nombre (nombre)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -137,8 +145,8 @@ CREATE TABLE paciente (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE favorito (
-  id_paciente   BIGINT UNSIGNED NOT NULL,
-  id_medico     BIGINT UNSIGNED NOT NULL,
+  id_paciente    BIGINT UNSIGNED NOT NULL,
+  id_medico      BIGINT UNSIGNED NOT NULL,
   fecha_agregado DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id_paciente, id_medico),
   KEY idx_fav_paciente_medico (id_paciente, id_medico),
@@ -182,8 +190,8 @@ CREATE TABLE cita (
   id_paciente    BIGINT UNSIGNED NOT NULL,
   id_medico      BIGINT UNSIGNED NOT NULL,
   fecha_hora     DATETIME NULL,                                 -- NULL durante negociación
-  propuesta_fecha_hora DATETIME NULL,                           -- NUEVO: última fecha/hora propuesta
-  ultima_propuesta_por ENUM('PACIENTE','MEDICO') NULL,          -- NUEVO: quién hizo la última propuesta
+  propuesta_fecha_hora DATETIME NULL,                           -- última fecha/hora propuesta
+  ultima_propuesta_por ENUM('PACIENTE','MEDICO') NULL,          -- quién hizo la última propuesta
   canal          ENUM('PRESENCIAL','TELECONSULTA') NOT NULL DEFAULT 'PRESENCIAL',
   confirmada_fecha_hora DATETIME NULL,                          -- fecha/hora exacta de confirmación
   motivo         TEXT,
@@ -274,9 +282,9 @@ ON DUPLICATE KEY UPDATE descripcion=VALUES(descripcion);
 
 -- =========================================================
 -- (OPCIONAL) MIGRACIÓN PARA BD EXISTENTE
--- Ejecuta esto SOLO si ya tenías la tabla 'cita' y quieres
--- agregar las nuevas columnas sin recrear la tabla.
--- Si tu servidor no soporta "IF NOT EXISTS", quítalo.
+-- (Solo si ya tenías la tabla 'cita' y te falta agregar
+-- las columnas nuevas. Si tu servidor no soporta
+-- "IF NOT EXISTS", elimínalo.)
 -- =========================================================
 -- ALTER TABLE cita
 --   ADD COLUMN IF NOT EXISTS propuesta_fecha_hora DATETIME NULL AFTER fecha_hora,
