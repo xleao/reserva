@@ -116,6 +116,10 @@ CREATE TABLE medico (
   id_medico            BIGINT UNSIGNED NOT NULL,   -- = usuario.id_usuario
   consultorio          VARCHAR(80),
   duracion_turno_min   INT NOT NULL DEFAULT 20,
+
+  -- NUEVO: precio por cita del médico
+  precio_cita          DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+
   valoracion_promedio  DECIMAL(2,1) DEFAULT NULL,
   actualizado_en       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id_medico),
@@ -282,7 +286,7 @@ ON DUPLICATE KEY UPDATE descripcion=VALUES(descripcion);
 
 -- =========================================================
 -- (OPCIONAL) MIGRACIÓN PARA BD EXISTENTE
--- (Solo si ya tenías la tabla 'cita' y te falta agregar
+-- (Solo si ya tenías las tablas y te falta agregar
 -- las columnas nuevas. Si tu servidor no soporta
 -- "IF NOT EXISTS", elimínalo.)
 -- =========================================================
@@ -290,3 +294,7 @@ ON DUPLICATE KEY UPDATE descripcion=VALUES(descripcion);
 --   ADD COLUMN IF NOT EXISTS propuesta_fecha_hora DATETIME NULL AFTER fecha_hora,
 --   ADD COLUMN IF NOT EXISTS ultima_propuesta_por ENUM('PACIENTE','MEDICO') NULL AFTER propuesta_fecha_hora,
 --   ADD COLUMN IF NOT EXISTS confirmada_fecha_hora DATETIME NULL AFTER canal;
+
+-- ALTER TABLE medico
+--   ADD COLUMN precio_cita DECIMAL(10,2) NOT NULL DEFAULT 0.00
+--     AFTER duracion_turno_min;
