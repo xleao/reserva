@@ -188,7 +188,8 @@ Paquete raíz: `pe.uni.consultas`
 ### 4.4 Estructura del frontend
 
 - `/static/{rol}/html/...`  
-- `/static/{rol}/js/...`  
+- `/static/{rol}/js/...`
+- `/static/{rol}/css/...` 
 - `/static/common/...` – componentes compartidos (bots, estilos, utilidades).  
 
 La navegación se realiza mediante enlaces y botones por rol.  
