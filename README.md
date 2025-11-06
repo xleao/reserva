@@ -87,19 +87,10 @@ Digitalizar y automatizar la gestión de citas, reduciendo tiempos y errores en 
 
 ### 2.3 Alcance
 
-**Qué sí hace:**
-
 - CRUD de especialidades.  
 - Flujo de citas con negociación y cambios de estado.  
 - Gestión de usuarios y roles.  
 - Bot Admin con respuestas desde la base de datos (conteos, listados, detalles puntuales).  
-
-**Qué no hace:**
-
-- No envía correos/SMS transaccionales.  
-- No integra pasarela de pagos.  
-- No incluye historias clínicas ni receta electrónica.  
-- No expone API pública para terceros (más allá de la REST interna usada por el frontend).  
 
 ---
 
