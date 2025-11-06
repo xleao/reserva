@@ -208,7 +208,7 @@ JavaScript utiliza `fetch` hacia `/api/...` y maneja el token CSRF en `POST/PUT/
 
 **Cita (`cita`)**
 
-- `id_cita`, `id_paciente`, `id_medico`  
+- `id_cita`, `id_paciente`, `id_medico`, `cita_precio`  
 - `fecha_hora` (confirmada), `propuesta_fecha_hora`, `confirmada_fecha_hora`  
 - `canal`: `PRESENCIAL` | `TELECONSULTA`  
 - `estado`:
