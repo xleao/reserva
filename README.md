@@ -1,342 +1,999 @@
-<!-- README COMPLETO EN HTML PURO (para pegar directo en README.md) -->
-<h1 id="top">🩺 CitaSys — Plataforma de Reservas Médicas (README)</h1>
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>CitaSys – Documentación Técnica y README</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-<p>
-  <img alt="Status" src="https://img.shields.io/badge/status-ACTIVO-00B37E?style=for-the-badge">
-  <img alt="Backend" src="https://img.shields.io/badge/Spring%20Boot-3.x-6DB33F?style=for-the-badge&logo=springboot&logoColor=white">
-  <img alt="Security" src="https://img.shields.io/badge/Spring%20Security-Argon2id-0A7E8C?style=for-the-badge">
-  <img alt="DB" src="https://img.shields.io/badge/MySQL-8.x-00758F?style=for-the-badge&logo=mysql&logoColor=white">
-  <img alt="Auth" src="https://img.shields.io/badge/CSRF-ON-3E7BFA?style=for-the-badge">
-  <img alt="Export" src="https://img.shields.io/badge/Export-Excel-2F855A?style=for-the-badge">
-</p>
+  <style>
+    :root{
+      --bg:#020617;
+      --bg-soft:#020617;
+      --card:#020617;
+      --card-soft:#0b1220;
+      --card-alt:#0f172a;
+      --ink:#e5e7eb;
+      --muted:#9ca3af;
+      --accent:#22d3ee;
+      --accent-soft:rgba(45,212,191,.16);
+      --accent-2:#a855f7;
+      --border:#1f2937;
+      --danger:#f97373;
+      --ok:#22c55e;
 
-<p>Plataforma minimalista para agendar citas médicas con negociación de horarios entre paciente y médico, panel administrativo, exportaciones a Excel y seguridad robusta (Argon2id, CSRF, rate limiting).</p>
+      --radius-lg:18px;
+      --radius-sm:999px;
+      --shadow-lg:0 20px 40px rgba(0,0,0,.45);
+      --shadow-soft:0 10px 30px rgba(15,23,42,.7);
+      --max-w:1120px;
+    }
 
-<hr/>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+    body{
+      font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+      background: radial-gradient(circle at top,#111827 0,#020617 55%,#020617 100%);
+      color:var(--ink);
+      line-height:1.6;
+    }
 
-<h2 id="tabla-de-contenido">📚 Tabla de contenido</h2>
-<ul>
-  <li><a href="#vista-general">🚀 Vista general</a></li>
-  <li><a href="#login-seguridad">🔐 Login &amp; Seguridad</a></li>
-  <li><a href="#rutas-pre-login">🧭 Rutas pre-login</a></li>
-  <li><a href="#requerimientos-funcionales">✅ Requerimientos funcionales</a></li>
-  <li><a href="#requerimientos-no-funcionales">🧩 Requerimientos no funcionales</a></li>
-  <li><a href="#actores-y-casos-de-uso">👤 Actores y casos de uso</a></li>
-  <li><a href="#flujos-clave">🔄 Flujos clave (Mermaid)</a></li>
-  <li><a href="#bd-19-tablas">🗄️ Diseño lógico de BD (19 tablas)</a></li>
-  <li><a href="#endpoints-sugeridos">⚙️ Endpoints sugeridos</a></li>
-  <li><a href="#exportaciones-excel">📤 Exportaciones Excel</a></li>
-  <li><a href="#indices-rendimiento">⚡ Índices &amp; reglas de rendimiento</a></li>
-</ul>
+    .page{
+      min-height:100vh;
+      padding:24px 16px 64px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+    }
 
-<hr/>
+    header{
+      width:100%;
+      max-width:var(--max-w);
+      margin:0 auto 24px;
+      padding:20px 20px 18px;
+      border-radius:24px;
+      background: radial-gradient(circle at 0 0,#22d3ee33 0,#0b1120 45%,#020617 100%);
+      box-shadow:var(--shadow-lg);
+      border:1px solid rgba(148,163,184,.45);
+      position:relative;
+      overflow:hidden;
+    }
 
-<h2 id="vista-general">🚀 Vista general</h2>
-<ul>
-  <li><strong>Pacientes:</strong> buscan médicos por especialidad/nombre/⭐, solicitan cita, negocian propuestas, gestionan “Mis Citas”, favoritos y notificaciones.</li>
-  <li><strong>Médicos:</strong> agenda tipo calendario, proponen horarios, confirman/reprograman/cancelan, marcan atención y exportan historial.</li>
-  <li><strong>Admin:</strong> dashboard con métricas, CRUD de usuarios/especialidades, gestión de citas y notificaciones, exportaciones con filtros.</li>
-</ul>
-<p><a href="#top">⬆ Volver arriba</a></p>
+    header::before{
+      content:"";
+      position:absolute;
+      inset:-120px;
+      background:
+        radial-gradient(circle at 100% 0,#a855f7 0,transparent 45%),
+        radial-gradient(circle at 0 100%,#22d3ee 0,transparent 40%);
+      opacity:.18;
+      pointer-events:none;
+    }
 
-<hr/>
+    header-inner{
+      display:block;
+      position:relative;
+      z-index:1;
+    }
 
-<h2 id="login-seguridad">🔐 Login &amp; Seguridad</h2>
+    h1{
+      font-size:2.1rem;
+      letter-spacing:.03em;
+      margin-bottom:.35rem;
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      gap:.5rem;
+    }
 
-<p><strong>Hash de contraseñas:</strong> <code>Argon2id</code> (no BCrypt).</p>
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:.35rem;
+      padding:4px 10px;
+      font-size:.72rem;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      border-radius:var(--radius-sm);
+      border:1px solid rgba(148,163,184,.5);
+      background:rgba(15,23,42,.88);
+      color:var(--muted);
+    }
+    .pill span{
+      display:inline-block;
+      width:7px;
+      height:7px;
+      border-radius:999px;
+      background:var(--accent);
+      box-shadow:0 0 0 4px rgba(34,211,238,.28);
+    }
 
-<pre><code>saltLen=16
-hashLen=32
-parallelism=2
-memory=65536   # 64 MB
-iterations=3
+    .subtitle{
+      font-size:.97rem;
+      color:var(--muted);
+      max-width:620px;
+      margin-bottom:1rem;
+    }
+
+    .meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:.6rem 1.25rem;
+      font-size:.82rem;
+      color:var(--muted);
+    }
+
+    .meta strong{color:var(--ink);font-weight:600}
+
+    .badges-line{
+      margin-top:1rem;
+      display:flex;
+      flex-wrap:wrap;
+      gap:.45rem;
+    }
+    .badge{
+      padding:4px 10px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.5);
+      font-size:.74rem;
+      display:inline-flex;
+      align-items:center;
+      gap:.4rem;
+      background:rgba(15,23,42,.9);
+    }
+    .badge-dot{
+      width:8px;
+      height:8px;
+      border-radius:999px;
+      background:var(--accent);
+    }
+    .badge-alt .badge-dot{background:var(--accent-2)}
+
+    /* Layout */
+    main{
+      width:100%;
+      max-width:var(--max-w);
+      margin:0 auto;
+      display:grid;
+      grid-template-columns:minmax(0,260px) minmax(0,1fr);
+      gap:20px;
+    }
+    @media (max-width:900px){
+      main{grid-template-columns:minmax(0,1fr);}
+      .toc{position:static;top:unset;max-height:none;}
+    }
+
+    .toc{
+      position:sticky;
+      top:16px;
+      align-self:flex-start;
+      background:rgba(15,23,42,.96);
+      border-radius:18px;
+      border:1px solid var(--border);
+      box-shadow:var(--shadow-soft);
+      padding:14px 14px 16px;
+      font-size:.82rem;
+    }
+    .toc h2{
+      font-size:.86rem;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      color:var(--muted);
+      margin-bottom:.75rem;
+    }
+    .toc ul{list-style:none;padding-left:0;margin:0;}
+    .toc li{margin-bottom:6px;}
+    .toc a{
+      color:var(--muted);
+      text-decoration:none;
+      display:block;
+      padding:3px 6px;
+      border-radius:8px;
+    }
+    .toc a:hover{
+      background:rgba(15,118,110,.32);
+      color:var(--accent);
+    }
+    .toc .toc-sub{
+      padding-left:10px;
+      margin-top:4px;
+    }
+
+    .content{
+      background:rgba(15,23,42,.94);
+      border-radius:24px;
+      border:1px solid var(--border);
+      box-shadow:var(--shadow-soft);
+      padding:22px 20px 28px;
+    }
+
+    section+section{margin-top:22px;}
+
+    h2{
+      font-size:1.3rem;
+      margin-bottom:.4rem;
+      display:flex;
+      align-items:center;
+      gap:.5rem;
+    }
+    h2 span.num{
+      font-size:.82rem;
+      color:var(--accent);
+      font-weight:600;
+      text-transform:uppercase;
+      letter-spacing:.15em;
+    }
+
+    h3{
+      font-size:1rem;
+      margin-top:12px;
+      margin-bottom:4px;
+    }
+
+    p{margin-bottom:.4rem;font-size:.92rem;}
+    ul,ol{margin:0 0 .4rem 1.1rem;font-size:.92rem;}
+    li{margin-bottom:.25rem;}
+
+    .card{
+      background:var(--card-soft);
+      border-radius:var(--radius-lg);
+      border:1px solid rgba(31,41,55,.9);
+      padding:12px 12px 10px;
+      margin-top:6px;
+      margin-bottom:8px;
+    }
+
+    code, pre{
+      font-family:SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+      font-size:.83rem;
+    }
+    pre{
+      margin:6px 0 10px;
+      padding:10px 12px;
+      border-radius:14px;
+      background:#020617;
+      border:1px solid #111827;
+      overflow:auto;
+    }
+    pre code{background:none;padding:0;}
+
+    .tag-pill{
+      display:inline-flex;
+      align-items:center;
+      gap:.25rem;
+      padding:2px 8px;
+      border-radius:999px;
+      border:1px solid rgba(55,65,81,.9);
+      font-size:.7rem;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      color:var(--muted);
+    }
+
+    .tree{
+      margin-top:4px;
+    }
+
+    .note{
+      border-left:3px solid var(--accent);
+      padding-left:10px;
+      margin-top:6px;
+      color:var(--muted);
+      font-size:.86rem;
+    }
+
+    .subtitle-small{
+      font-size:.83rem;
+      color:var(--muted);
+      margin-bottom:.2rem;
+    }
+
+    hr{
+      border:none;
+      border-top:1px dashed rgba(75,85,99,.85);
+      margin:16px 0 12px;
+    }
+
+    .section-badge{
+      font-size:.7rem;
+      letter-spacing:.15em;
+      text-transform:uppercase;
+      color:var(--accent);
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <header-inner>
+      <div class="pill"><span></span>CitaSys · Sistema de citas médicas</div>
+      <h1>CitaSys <small>(sistema de citas)</small></h1>
+      <p class="subtitle">
+        Documentación técnica principal y resumen tipo README para el proyecto CitaSys, un sistema web de gestión de citas médicas desarrollado con Spring Boot, Java y frontend HTML/CSS/JS.
+      </p>
+
+      <div class="meta">
+        <div><strong>Autor:</strong> Jhostin Leonardo Rodriguez Neyra – Desarrollador Full&nbsp;Stack</div>
+        <div><strong>Versión doc:</strong> v1.0</div>
+        <div><strong>Fecha:</strong> 2025-11-05</div>
+        <div><strong>Proyecto:</strong> CitaSys – Sistema de gestión de citas médicas</div>
+      </div>
+
+      <div class="badges-line">
+        <div class="badge">
+          <span class="badge-dot"></span> Spring Boot&nbsp;3.5.7 · Java&nbsp;17
+        </div>
+        <div class="badge badge-alt">
+          <span class="badge-dot"></span> HTML · CSS · JS (vanilla)
+        </div>
+        <div class="badge">
+          <span class="badge-dot"></span> MySQL · Spring Data JPA · Spring Security
+        </div>
+      </div>
+    </header-inner>
+  </header>
+
+  <main>
+    <!-- Tabla de contenido -->
+    <aside class="toc">
+      <h2>Contenido</h2>
+      <ul>
+        <li><a href="#resumen">1. Resumen ejecutivo</a></li>
+        <li><a href="#objetivos">2. Objetivos y alcance</a>
+          <ul class="toc-sub">
+            <li><a href="#objetivo-general">2.1 Objetivo general</a></li>
+            <li><a href="#objetivos-especificos">2.2 Objetivos específicos</a></li>
+            <li><a href="#alcance">2.3 Alcance</a></li>
+          </ul>
+        </li>
+        <li><a href="#usuarios">3. Usuarios y casos de uso</a></li>
+        <li><a href="#arquitectura">4. Arquitectura del sistema</a></li>
+        <li><a href="#modelo-datos">5. Modelo de datos</a></li>
+        <li><a href="#api">6. API REST (backend)</a></li>
+        <li><a href="#seguridad">7. Seguridad</a></li>
+        <li><a href="#flujo-frontend">8. Flujo de navegación (frontend)</a></li>
+        <li><a href="#desarrollo">9. Proceso de desarrollo y calidad</a></li>
+        <li><a href="#despliegue">10. Despliegue y entorno</a></li>
+        <li><a href="#limitaciones">11. Limitaciones y trabajo futuro</a></li>
+        <li><a href="#anexos">12. Anexos</a></li>
+        <li><a href="#readme">README · Resumen GitHub</a></li>
+        <li><a href="#arquitectura-carpetas">Arquitectura de carpetas</a></li>
+        <li><a href="#notas">Notas y acciones recomendadas</a></li>
+      </ul>
+    </aside>
+
+    <!-- Contenido principal -->
+    <div class="content">
+
+      <!-- 1. Resumen ejecutivo -->
+      <section id="resumen">
+        <h2><span class="num">01</span> Resumen ejecutivo</h2>
+        <p>
+          CitaSys es un sistema web para gestionar el ciclo completo de citas médicas:
+          solicitud, negociación de horarios, confirmación, atención y estados finales.
+        </p>
+        <div class="card">
+          <h3>Perfiles de usuario</h3>
+          <ul>
+            <li><strong>Administrador</strong></li>
+            <li><strong>Médico</strong></li>
+            <li><strong>Paciente</strong></li>
+          </ul>
+
+          <h3>Principales funcionalidades</h3>
+          <ul>
+            <li>Gestión de usuarios, especialidades y médicos por especialidad.</li>
+            <li>Flujo de citas con estados:
+              <code>SOLICITADA</code>, <code>PROPUESTA</code>, <code>EN_NEGOCIACION</code>,
+              <code>CONFIRMADA</code>, <code>CANCELADA</code>, <code>ATENDIDA</code>, <code>NO_ASISTIO</code>.
+            </li>
+            <li>Bot asistente (paciente/médico) y Bot Admin con consultas a BD (conteos, listados, detalles).</li>
+            <li>Notificaciones y <em>deep links</em> a vistas específicas.</li>
+          </ul>
+
+          <h3>Tecnologías clave</h3>
+          <ul>
+            <li>Spring Boot 3.5.7 (Java 17)</li>
+            <li>Spring Web, Spring Security, Spring Data JPA, Validation</li>
+            <li>MySQL</li>
+            <li>Frontend HTML/CSS/JS (vanilla)</li>
+          </ul>
+
+          <p><strong>Estado actual:</strong> MVP avanzado listo para pilotos internos.</p>
+        </div>
+      </section>
+
+      <!-- 2. Objetivos y alcance -->
+      <section id="objetivos">
+        <h2><span class="num">02</span> Objetivos y alcance</h2>
+
+        <h3 id="objetivo-general">2.1 Objetivo general</h3>
+        <p>
+          Digitalizar y automatizar la gestión de citas, reduciendo tiempos y errores en la coordinación entre pacientes y médicos.
+        </p>
+
+        <h3 id="objetivos-especificos">2.2 Objetivos específicos</h3>
+        <ul>
+          <li>Automatizar la solicitud y confirmación de citas.</li>
+          <li>Estandarizar el flujo de negociación de horarios.</li>
+          <li>Centralizar el catálogo de especialidades y médicos.</li>
+          <li>Proveer un panel de administración con métricas básicas (conteos por estado).</li>
+          <li>Habilitar asistentes conversacionales para orientar y operar tareas comunes.</li>
+        </ul>
+
+        <h3 id="alcance">2.3 Alcance</h3>
+        <div class="card">
+          <h4 class="subtitle-small">Qué <strong>sí</strong> hace</h4>
+          <ul>
+            <li>CRUD de especialidades.</li>
+            <li>Flujo de citas con negociación y cambios de estado.</li>
+            <li>Gestión de usuarios y roles.</li>
+            <li>Bot Admin con respuestas desde la base de datos (conteos, listados, detalles puntuales).</li>
+          </ul>
+
+          <h4 class="subtitle-small">Qué <strong>no</strong> hace</h4>
+          <ul>
+            <li>No envía correos/SMS transaccionales.</li>
+            <li>No integra pasarela de pagos.</li>
+            <li>No incluye historias clínicas ni receta electrónica.</li>
+            <li>No expone una API pública para terceros (más allá de la REST interna utilizada por el frontend).</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 3. Usuarios y casos de uso -->
+      <section id="usuarios">
+        <h2><span class="num">03</span> Usuarios y casos de uso</h2>
+
+        <h3>3.1 Perfiles de usuario</h3>
+        <div class="card">
+          <h4>Administrador</h4>
+          <p><strong>Responsabilidades:</strong> gestionar especialidades, ver métricas, brindar soporte.</p>
+          <p><strong>Vistas:</strong> panel admin, gestión de especialidades, Bot Admin.</p>
+
+          <h4>Médico</h4>
+          <p><strong>Responsabilidades:</strong> proponer horarios, confirmar/cancelar citas, marcar atención o no-asistencia.</p>
+          <p><strong>Vistas:</strong> panel médico, notificaciones, módulo de citas.</p>
+
+          <h4>Paciente</h4>
+          <p><strong>Responsabilidades:</strong> solicitar cita, participar en la negociación, confirmar/cancelar.</p>
+          <p><strong>Vistas:</strong> panel paciente, especialidades, selección de médico, citas.</p>
+        </div>
+
+        <h3>3.2 Casos de uso principales</h3>
+        <ul>
+          <li>Crear y gestionar especialidades (Administrador).</li>
+          <li>Solicitar, negociar y confirmar una cita (Paciente/Médico).</li>
+          <li>Aprobar o rechazar propuestas de horario (Médico/Paciente).</li>
+          <li>Ver reportes simples de citas por estado (Administrador a través del Bot).</li>
+          <li>Listar usuarios, médicos y especialidades (Administrador vía Bot).</li>
+        </ul>
+
+        <p class="note">
+          Opcionalmente, se pueden representar estos flujos con un diagrama UML de casos de uso (Actores:
+          Admin, Médico, Paciente; Casos: Gestionar especialidad, Solicitar cita, Proponer horario,
+          Confirmar cita, Consultar métricas).
+        </p>
+      </section>
+
+      <!-- 4. Arquitectura -->
+      <section id="arquitectura">
+        <h2><span class="num">04</span> Arquitectura del sistema</h2>
+
+        <h3>4.1 Vista general</h3>
+        <p>
+          CitaSys implementa una arquitectura cliente–servidor clásica:
+        </p>
+        <ul>
+          <li><strong>Frontend:</strong> HTML5, CSS3 y JavaScript (vanilla). Páginas separadas por rol bajo <code>static/{rol}/...</code>.</li>
+          <li><strong>Backend:</strong> Spring Boot (REST) con capas bien definidas.</li>
+          <li><strong>Base de datos:</strong> MySQL.</li>
+        </ul>
+        <p>Capas por convención:</p>
+        <ul>
+          <li><code>Controller → Repository → DB</code></li>
+          <li>Entidades JPA bajo <code>pe.uni.consultas.entidad</code>.</li>
+        </ul>
+        <div class="card">
+          <h4>Esquema de alto nivel</h4>
+          <pre class="tree"><code>Navegador (Paciente / Médico / Admin)
+      ↓  (HTTP/HTTPS · JSON)
+Servidor Spring Boot (CitaSys API)
+      ↓  (JPA / JDBC)
+Base de datos MySQL (schema: reserva)</code></pre>
+        </div>
+
+        <h3>4.2 Tecnologías usadas</h3>
+        <ul>
+          <li><strong>Backend</strong>
+            <ul>
+              <li>Java 17, Spring Boot 3.5.7</li>
+              <li>Spring Web, Spring Security, Spring Data JPA, Validation</li>
+              <li><code>Argon2PasswordEncoder</code> (módulo security-crypto) para hash de contraseñas</li>
+              <li>MySQL Connector/J</li>
+              <li>H2 (opcional para desarrollo en memoria)</li>
+            </ul>
+          </li>
+          <li><strong>Frontend</strong>
+            <ul>
+              <li>HTML5, CSS3 y JavaScript (vanilla)</li>
+            </ul>
+          </li>
+          <li><strong>Herramientas</strong>
+            <ul>
+              <li>Maven</li>
+              <li>Git</li>
+              <li>IDE: IntelliJ IDEA / VS Code</li>
+              <li>Apache POI (opcional, exportación XLSX si se requiere)</li>
+            </ul>
+          </li>
+        </ul>
+
+        <h3>4.3 Estructura de paquetes (backend)</h3>
+        <p>Paquete raíz: <code>pe.uni.consultas</code></p>
+        <ul>
+          <li><code>controlador</code> – Controladores REST (seguridad, especialidades, citas, bots, módulos por rol).</li>
+          <li><code>repositorio</code> – Interfaces Spring Data JPA.</li>
+          <li><code>entidad</code> – Entidades JPA que representan las tablas.</li>
+          <li><code>config</code> – Configuración de seguridad/CORS (si aplica en el repositorio).</li>
+        </ul>
+        <p>Responsabilidades por capa:</p>
+        <ul>
+          <li><strong>Controller:</strong> recibe solicitudes HTTP, realiza validaciones básicas y delega la lógica.</li>
+          <li><strong>Repository:</strong> acceso a la base de datos mediante JPA y consultas derivadas o nativas.</li>
+          <li><strong>Entity:</strong> mapeo de tablas a clases Java con anotaciones JPA.</li>
+        </ul>
+
+        <h3>4.4 Estructura del frontend</h3>
+        <ul>
+          <li><code>/static/{rol}/html/...</code></li>
+          <li><code>/static/{rol}/js/...</code></li>
+          <li><code>/static/common/...</code> (componentes compartidos, como bots o estilos comunes).</li>
+        </ul>
+        <p>La navegación se implementa con enlaces y botones por rol; el JavaScript realiza peticiones
+          <code>fetch</code> hacia <code>/api/...</code>, manejando los tokens CSRF en las peticiones POST/PUT/DELETE.</p>
+      </section>
+
+      <!-- 5. Modelo de datos -->
+      <section id="modelo-datos">
+        <h2><span class="num">05</span> Modelo de datos</h2>
+
+        <h3>5.1 Entidades clave</h3>
+
+        <div class="card">
+          <h4>Usuario (<code>usuario</code>)</h4>
+          <ul>
+            <li><code>id_usuario</code>, <code>email</code>, <code>password_hash</code>, <code>nombres</code>, <code>apellidos</code>, <code>telefono</code>, <code>dni</code>, <code>estado</code>, <code>fecha_creacion</code></li>
+            <li>Campos de foto: <code>foto_url</code>, <code>foto_blob</code>, <code>foto_mime</code>, <code>foto_actualizado</code></li>
+          </ul>
+
+          <h4>Cita (<code>cita</code>)</h4>
+          <ul>
+            <li><code>id_cita</code>, <code>id_paciente</code>, <code>id_medico</code></li>
+            <li><code>fecha_hora</code> (confirmada), <code>propuesta_fecha_hora</code>, <code>confirmada_fecha_hora</code></li>
+            <li><code>canal</code>: <code>PRESENCIAL</code> | <code>TELECONSULTA</code></li>
+            <li><code>estado</code>:
+              <code>SOLICITADA</code>, <code>PROPUESTA</code>, <code>EN_NEGOCIACION</code>,
+              <code>CONFIRMADA</code>, <code>CANCELADA</code>, <code>ATENDIDA</code>, <code>NO_ASISTIO</code>
+            </li>
+            <li><code>ultima_propuesta_por</code>: <code>PACIENTE</code> | <code>MEDICO</code></li>
+          </ul>
+
+          <h4>Especialidad (<code>especialidad</code>)</h4>
+          <ul>
+            <li><code>id_especialidad</code>, <code>nombre</code>, <code>descripcion</code>, <code>activo</code></li>
+            <li>Soporte de medios: <code>foto_url</code>, <code>foto_blob</code>, <code>foto_mime</code>, <code>foto_actualizado</code></li>
+          </ul>
+        </div>
+
+        <h3>Relaciones</h3>
+        <ul>
+          <li>Un <strong>Usuario</strong> se asocia a uno o más roles mediante la tabla intermedia <code>usuario_rol</code> y la tabla <code>rol</code>.</li>
+          <li>Una <strong>Cita</strong> referencia a un usuario paciente y a un usuario médico mediante claves foráneas.</li>
+          <li>La relación Médico–Especialidad se gestiona a través de la tabla <code>medico_especialidad</code>.</li>
+        </ul>
+
+        <h3>5.2 Tablas principales</h3>
+        <ul>
+          <li><strong><code>usuario</code></strong>: datos personales, credenciales hash y estado.</li>
+          <li><strong><code>cita</code></strong>: relación paciente–médico, estado y fechas clave.</li>
+          <li><strong><code>especialidad</code></strong>: catálogo de especialidades, campo activo/inactivo y medios asociados.</li>
+          <li><strong><code>rol</code>, <code>usuario_rol</code></strong>: soporte de seguridad basada en roles.</li>
+          <li><strong><code>medico_especialidad</code></strong>: asignación de especialidades a médicos.</li>
+        </ul>
+      </section>
+
+      <!-- 6. API REST -->
+      <section id="api">
+        <h2><span class="num">06</span> API REST (backend)</h2>
+
+        <h3>6.1 Convenciones generales</h3>
+        <ul>
+          <li><strong>Base URL:</strong> <code>/api/...</code></li>
+          <li><strong>Formato:</strong> JSON</li>
+          <li><strong>Autenticación:</strong> Sesiones HTTP gestionadas por Spring Security.</li>
+          <li><strong>CSRF:</strong> habilitado para métodos de cambio de estado (POST/PUT/DELETE).</li>
+          <li><strong>Roles:</strong> <code>ADMIN</code>, <code>MEDICO</code>, <code>PACIENTE</code> (y/o <code>USER</code> según configuración).</li>
+        </ul>
+
+        <h3>6.2 Endpoints principales</h3>
+
+        <div class="card">
+          <h4>Autenticación / CSRF</h4>
+          <ul>
+            <li><code>POST /api/auth/csrf</code> – entrega token CSRF para el frontend.</li>
+            <li><code>GET</code>, <code>HEAD</code>, <code>OPTIONS /api/auth/csrf</code> – token y metadatos CSRF.</li>
+          </ul>
+          <p class="note">
+            El login/logout completo puede residir en otro controlador del proyecto,
+            siguiendo la configuración de Spring Security y sesiones.
+          </p>
+        </div>
+
+        <div class="card">
+          <h4>Especialidades (público autenticado)</h4>
+          <ul>
+            <li><code>GET /api/especialidades</code> – lista detallada (filtrable por <code>activas</code> y <code>q</code>).</li>
+            <li><code>GET /api/especialidades/nombres?activas=true|false</code> – devuelve solo <code>id</code> y <code>nombre</code>.</li>
+            <li><code>GET /api/especialidades/{id}/foto</code> – obtiene foto (blob o redirección 302 a URL externa).</li>
+            <li><code>POST /api/especialidades</code> (ADMIN) – crear especialidad.</li>
+            <li><code>PUT /api/especialidades/{id}</code> (ADMIN) – actualizar datos.</li>
+            <li><code>DELETE /api/especialidades/{id}</code> (ADMIN) – eliminar o desactivar.</li>
+            <li><code>POST /api/especialidades/{id}/foto</code> (ADMIN, multipart) – subir foto como blob.</li>
+            <li><code>DELETE /api/especialidades/{id}/foto</code> (ADMIN) – eliminar foto.</li>
+            <li><code>PUT /api/especialidades/{id}/foto-url</code> (ADMIN) – asociar URL de foto.</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h4>Admin Especialidades (área admin)</h4>
+          <p>Base <code>/api/admin/especialidades</code> con endpoints CRUD equivalentes,
+            reforzando validaciones y reglas administrativas.</p>
+        </div>
+
+        <div class="card">
+          <h4>Bot Admin</h4>
+          <ul>
+            <li><code>POST /api/admin/ai/chat</code> (solo ADMIN)</li>
+          </ul>
+          <p>Permite consultas sobre la base de datos, por ejemplo:</p>
+          <ul>
+            <li>Conteos de citas por estado y por fecha.</li>
+            <li>Detalle de una cita concreta por ID.</li>
+            <li>Listado de próximas citas.</li>
+            <li>Listar nombres de usuarios, médicos, pacientes y especialidades.</li>
+            <li>Interpretar referencias como “sus nombres” a partir del contexto.</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h4>Citas, notificaciones y usuarios</h4>
+          <p>
+            El proyecto incluye controladores y páginas específicas para paciente y médico,
+            cubriendo flujos de negociación y cambio de estado de las citas, junto con
+            notificaciones y enlaces profundos hacia las vistas relevantes.
+          </p>
+        </div>
+
+        <h3>6.3 Ejemplos de request/response</h3>
+
+        <div class="card">
+          <h4>Ejemplo: obtener nombres de especialidades activas</h4>
+          <p><code>GET /api/especialidades/nombres?activas=true</code></p>
+          <pre><code>[
+  { "id": 1, "nombre": "Cardiología" },
+  { "id": 2, "nombre": "Dermatología" }
+]</code></pre>
+        </div>
+
+        <div class="card">
+          <h4>Ejemplo: consulta al Bot Admin</h4>
+          <p><code>POST /api/admin/ai/chat</code></p>
+          <p><strong>Request</strong></p>
+          <pre><code>{
+  "messages": [
+    { "role": "user", "content": "¿Cuántos médicos hay?" }
+  ]
+}</code></pre>
+          <p><strong>Response</strong></p>
+          <pre><code>{
+  "ok": true,
+  "reply": "Hay 7 médicos registrados en el sistema."
+}</code></pre>
+        </div>
+      </section>
+
+      <!-- 7. Seguridad -->
+      <section id="seguridad">
+        <h2><span class="num">07</span> Seguridad</h2>
+        <ul>
+          <li><strong>Autenticación:</strong> Sesiones HTTP con Spring Security (<code>JSESSIONID</code>).</li>
+          <li><strong>CSRF:</strong> habilitado. El frontend envía el token en el header <code>X-XSRF-TOKEN</code> en las peticiones que modifican estado.</li>
+          <li><strong>Roles y permisos:</strong>
+            <ul>
+              <li><code>ADMIN</code>: CRUD de especialidades y uso del Bot Admin con acceso a consultas internas de BD.</li>
+              <li><code>MEDICO</code>: gestión de citas y propuestas de horarios.</li>
+              <li><code>PACIENTE</code>: solicitud y confirmación/cancelación de citas.</li>
+            </ul>
+          </li>
+          <li><strong>Buenas prácticas aplicadas:</strong>
+            <ul>
+              <li>Hash de contraseña con <code>Argon2PasswordEncoder</code>.</li>
+              <li>Validación de entrada con Jakarta Validation (cuando aplica).</li>
+              <li>Configuración de CORS y uso de <code>SameSite</code> en cookies.</li>
+              <li>No exponer credenciales ni API keys en el frontend.</li>
+            </ul>
+          </li>
+        </ul>
+      </section>
+
+      <!-- 8. Flujo de navegación -->
+      <section id="flujo-frontend">
+        <h2><span class="num">08</span> Flujo de navegación (frontend)</h2>
+        <p>
+          Tras el login, el sistema redirige según el rol del usuario.
+        </p>
+        <div class="card">
+          <h4>Paciente</h4>
+          <p>Flujo típico:</p>
+          <ul>
+            <li>Inicio → Especialidades → Seleccionar médico → Proponer/confirmar horario → Ver citas.</li>
+          </ul>
+
+          <h4>Médico</h4>
+          <ul>
+            <li>Inicio → Notificaciones → Citas → Proponer/confirmar/atender.</li>
+          </ul>
+
+          <h4>Admin</h4>
+          <ul>
+            <li>Inicio → Especialidades (CRUD) → Bot Admin para consultas y métricas.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 9. Proceso desarrollo -->
+      <section id="desarrollo">
+        <h2><span class="num">09</span> Proceso de desarrollo y calidad</h2>
+        <ul>
+          <li><strong>Control de versiones:</strong> Git, con ramas típicas como <code>main</code> y <code>dev</code>.</li>
+          <li><strong>Convenciones:</strong> nombres en español, paquetes organizados por capas (controlador, entidad, repositorio).</li>
+          <li><strong>Testing:</strong>
+            <ul>
+              <li>Pruebas unitarias y manuales en flujos críticos.</li>
+              <li>Validación de estados de cita y transiciones de estados.</li>
+            </ul>
+          </li>
+          <li><strong>Aseguramiento de calidad:</strong>
+            <ul>
+              <li>Verificación del comportamiento de CSRF en peticiones POST.</li>
+              <li>Pruebas básicas de seguridad (restricción de endpoints por rol).</li>
+            </ul>
+          </li>
+        </ul>
+      </section>
+
+      <!-- 10. Despliegue -->
+      <section id="despliegue">
+        <h2><span class="num">10</span> Despliegue y entorno</h2>
+
+        <h3>10.1 Levantar localmente</h3>
+        <p><strong>Requisitos:</strong></p>
+        <ul>
+          <li>JDK 17</li>
+          <li>Maven</li>
+          <li>MySQL en <code>localhost:3306</code>, base de datos <code>reserva</code></li>
+        </ul>
+
+        <p>Configurar <code>src/main/resources/application.properties</code>:</p>
+        <pre><code>spring.datasource.url=jdbc:mysql://localhost:3306/reserva?useSSL=false&amp;serverTimezone=UTC
+spring.datasource.username=root
+spring.datasource.password=</code></pre>
+
+        <p>Ejecutar la aplicación:</p>
+        <ul>
+          <li><code>mvn spring-boot:run</code>, o</li>
+          <li>Ejecutar la clase <code>ConsultasApplication</code> desde el IDE.</li>
+        </ul>
+
+        <p>Luego navegar a <code>http://localhost:8080/</code>.</p>
+
+        <h3>10.2 Perfiles</h3>
+        <p>
+          El archivo <code>application.properties</code> sirve por defecto para el entorno de desarrollo local.
+          Se pueden definir <code>application-dev.properties</code> y <code>application-prod.properties</code>
+          para separar URLs y credenciales según ambiente.
+        </p>
+
+        <h3>10.3 Despliegue</h3>
+        <ul>
+          <li>Se genera un <code>.jar</code> ejecutable con Tomcat embebido.</li>
+          <li>Se recomienda usar Nginx/Apache como proxy inverso frente a la instancia de CitaSys.</li>
+          <li>La base de datos MySQL puede ser un servicio administrado (cloud o on-premise).</li>
+          <li>El proyecto es <em>dockerizable</em> si se desea; no se incluye actualmente un <code>Dockerfile</code> en el repositorio.</li>
+        </ul>
+      </section>
+
+      <!-- 11. Limitaciones -->
+      <section id="limitaciones">
+        <h2><span class="num">11</span> Limitaciones y trabajo futuro</h2>
+        <h3>Limitaciones actuales</h3>
+        <ul>
+          <li>No hay envío de notificaciones por email/SMS.</li>
+          <li>No existe paginación en todas las listas.</li>
+          <li>No se ofrecen métricas avanzadas ni gráficos detallados para el Administrador.</li>
+        </ul>
+
+        <h3>Trabajo futuro</h3>
+        <ul>
+          <li>Internacionalización del frontend.</li>
+          <li>Reportes y dashboards avanzados (gráficos y KPIs).</li>
+          <li>Integración de recordatorios vía email o WhatsApp.</li>
+          <li>Auditoría extendida y logs estructurados.</li>
+          <li>Permisos más granulares por módulo.</li>
+        </ul>
+      </section>
+
+      <!-- 12. Anexos -->
+      <section id="anexos">
+        <h2><span class="num">12</span> Anexos</h2>
+        <ul>
+          <li>Diagramas UML de casos de uso, clases y secuencia (opcional, recomendados).</li>
+          <li>Scripts SQL de creación de la base de datos <code>reserva</code>.</li>
+          <li>Capturas de las pantallas principales del sistema (por rol).</li>
+          <li>Diagrama de arquitectura de alto nivel (Navegador → Backend → DB).</li>
+        </ul>
+      </section>
+
+      <hr />
+
+      <!-- README estilo GitHub -->
+      <section id="readme">
+        <div class="section-badge">Readme · resumen para GitHub</div>
+        <h2>README — CitaSys</h2>
+
+        <h3>Título</h3>
+        <p><strong>CitaSys – Sistema de gestión de citas médicas</strong></p>
+
+        <h3>Descripción breve</h3>
+        <p>
+          Aplicación web para administrar especialidades, médicos y el ciclo de vida de las citas médicas,
+          con asistentes conversacionales y panel administrativo.
+        </p>
+
+        <h3>Tecnologías</h3>
+        <ul>
+          <li>Java 17, Spring Boot 3.5.7</li>
+          <li>Spring Web, Spring Data JPA, Spring Security</li>
+          <li>MySQL</li>
+          <li>HTML/CSS/JS (vanilla)</li>
+        </ul>
+
+        <h3>Arquitectura (resumen)</h3>
+        <ul>
+          <li>Cliente (HTML/JS) que consume la API REST del backend (Spring Boot).</li>
+          <li>Persistencia con JPA sobre MySQL.</li>
+          <li>Seguridad basada en sesiones y CSRF.</li>
+          <li>Roles: <code>ADMIN</code>, <code>MEDICO</code>, <code>PACIENTE</code>.</li>
+        </ul>
+
+        <h3>Cómo ejecutar localmente</h3>
+        <p><strong>Requisitos:</strong> JDK 17, Maven, MySQL.</p>
+        <p>Configurar <code>src/main/resources/application.properties</code>:</p>
+        <pre><code>spring.datasource.url=jdbc:mysql://localhost:3306/reserva?useSSL=false&amp;serverTimezone=UTC
+spring.datasource.username=root
+spring.datasource.password=</code></pre>
+        <p>Ejecutar:</p>
+        <pre><code>mvn spring-boot:run</code></pre>
+        <p>Luego abrir <code>http://localhost:8080/</code> en el navegador.</p>
+      </section>
+
+      <!-- Arquitectura carpetas -->
+      <section id="arquitectura-carpetas">
+        <h3>Arquitectura de carpetas (backend &amp; frontend)</h3>
+
+        <h4>Backend – código Java</h4>
+        <pre class="tree"><code>src/
+  main/
+    java/
+      pe/
+        uni/
+          consultas/
+            ConsultasApplication.java
+            controlador/
+              ... Controladores REST (Auth, Especialidades, Citas, Admin, Bots, etc.)
+            entidad/
+              ... Entidades JPA (Usuario, Cita, Especialidad, Rol, etc.)
+            repositorio/
+              ... Repositorios Spring Data JPA
 </code></pre>
 
-<ul>
-  <li>Opcional <strong>pepper</strong> en variable de entorno.</li>
-  <li><strong>CSRF</strong> activado + cookies de sesión <code>SameSite=Lax/Strict</code> + <code>HttpOnly</code>.</li>
-  <li><strong>Rate limiting:</strong> bloqueo temporal por usuario/IP tras N fallos (registro en <code>auth_login_intento</code>).</li>
-  <li><strong>Password reset:</strong> tokens firmados con expiración, un solo uso (<code>auth_password_reset</code>).</li>
-  <li><strong>Redirección post-login por rol:</strong>
-    <ul>
-      <li>PACIENTE → <code>/paciente/inicio</code></li>
-      <li>MEDICO → <code>/medico/inicio</code></li>
-      <li>ADMIN → <code>/admin/inicio</code></li>
-    </ul>
-  </li>
-</ul>
+        <h4>Frontend estático</h4>
+        <pre class="tree"><code>src/
+  main/
+    resources/
+      static/
+        admin/
+          html/
+            ... vistas del Administrador
+          js/
+            ... lógica JS del Administrador
+        medico/
+          html/
+            ... vistas del Médico
+          js/
+            ... lógica JS del Médico
+        paciente/
+          html/
+            ... vistas del Paciente
+          js/
+            ... lógica JS del Paciente
+        common/
+          ... componentes compartidos (bots, estilos, utilidades)
+        img/
+          ... iconos y recursos gráficos
+        index.html    (landing / página de entrada)
+        login.html    (pantalla de autenticación)</code></pre>
 
-<p><strong>Endpoints de auth</strong></p>
-<pre><code>POST /api/auth/login
-POST /api/auth/logout
-POST /api/auth/recuperar
-POST /api/auth/restablecer
-GET  /api/auth/me
-</code></pre>
+        <h4>Configuración</h4>
+        <pre class="tree"><code>src/
+  main/
+    resources/
+      application.properties   (configuración de entorno: BD, puertos, etc.)</code></pre>
 
-<p><a href="#top">⬆ Volver arriba</a></p>
+        <h3>Endpoints principales (muestra)</h3>
+        <p>Listado resumido de endpoints de referencia:</p>
+        <ul>
+          <li><strong>Autenticación / CSRF</strong>
+            <ul>
+              <li><code>POST /api/auth/csrf</code></li>
+              <li><code>GET /api/auth/csrf</code></li>
+            </ul>
+          </li>
+          <li><strong>Especialidades</strong>
+            <ul>
+              <li><code>GET /api/especialidades</code></li>
+              <li><code>GET /api/especialidades/nombres?activas=true</code></li>
+              <li><code>GET /api/especialidades/{id}/foto</code></li>
+              <li><code>POST /api/especialidades</code> (ADMIN)</li>
+              <li><code>PUT /api/especialidades/{id}</code> (ADMIN)</li>
+              <li><code>DELETE /api/especialidades/{id}</code> (ADMIN)</li>
+            </ul>
+          </li>
+          <li><strong>Admin Especialidades</strong>
+            <ul>
+              <li><code>POST /api/admin/especialidades</code></li>
+              <li><code>PUT /api/admin/especialidades/{id}</code></li>
+              <li><code>DELETE /api/admin/especialidades/{id}</code></li>
+              <li><code>POST /api/admin/especialidades/{id}/foto</code></li>
+            </ul>
+          </li>
+          <li><strong>Bot Admin</strong>
+            <ul>
+              <li><code>POST /api/admin/ai/chat</code> (solo ADMIN)</li>
+            </ul>
+          </li>
+        </ul>
 
-<hr/>
+        <h3>Autor</h3>
+        <p><strong>Jhostin Leonardo Rodriguez Neyra</strong><br/>Desarrollador Full Stack</p>
+      </section>
 
-<h2 id="rutas-pre-login">🧭 Rutas pre-login</h2>
+      <hr />
 
-<ul>
-  <li><code>/</code> (Landing mínima): logo, texto breve, botón <strong>Iniciar sesión</strong> → <code>/auth/login</code></li>
-  <li><code>/auth/login</code>: email + contraseña, “Recordarme”, “¿Olvidaste tu contraseña?” → <code>/auth/recuperar</code></li>
-  <li><code>/auth/recuperar</code>: ingresa email → envío de token con expiración</li>
-  <li><code>/auth/restablecer?token=...</code>: nueva contraseña (y confirmación)</li>
-</ul>
+      <!-- Notas -->
+      <section id="notas">
+        <h3>Notas y acciones recomendadas</h3>
+        <ul>
+          <li>Validar que todos los endpoints y nombres de entidades reflejen exactamente el código fuente actual, ampliando el listado de API para incluir módulos de citas y usuarios si es necesario.</li>
+          <li>Añadir diagramas UML (casos de uso, clases, arquitectura) directamente en el repositorio para complementar la documentación textual.</li>
+          <li>Publicar una versión en PDF o DOCX de este documento para compartir fácilmente con jefes y stakeholders.</li>
+          <li>Mantener esta documentación versionada junto con el código (por ejemplo, etiquetando la versión del documento como parte del tag <code>v1.0</code> del proyecto).</li>
+        </ul>
+      </section>
 
-<blockquote><strong>TIP:</strong> Usa <code>SameSite=Lax</code> para UX web estándar; <code>Strict</code> si priorizas seguridad.</blockquote>
-
-<p><a href="#top">⬆ Volver arriba</a></p>
-
-<hr/>
-
-<h2 id="requerimientos-funcionales">✅ Requerimientos funcionales</h2>
-
-<h3>👩‍⚕️ Paciente</h3>
-<ul>
-  <li>Inicio con saludo, guía, CTA <strong>Reservar cita</strong> y carrusel de médicos (foto, especialidad, ⭐1–5).</li>
-  <li>Buscar médicos por <strong>nombre</strong>, <strong>especialidad</strong> o <strong>rating</strong>.</li>
-  <li>Ver <strong>perfil del médico</strong> (foto, CMP, consultorio, especialidad, reseñas).</li>
-  <li><strong>Solicitar cita</strong>: motivo, fecha/rango preferido, canal (presencial/teleconsulta).</li>
-  <li>Aceptar/Rechazar <strong>propuesta</strong> del médico; <strong>negociación</strong> con mensajes.</li>
-  <li><strong>Mis Citas</strong> por tabs: Pendientes, En negociación, Confirmadas, Historial (canceladas/atendidas/no asistió).</li>
-  <li><strong>Cancelar</strong> antes de confirmar; <strong>reprogramar</strong> (pre-llenado).</li>
-  <li><strong>Notificaciones</strong> (propuestas, confirmaciones, recordatorios).</li>
-  <li><strong>Favoritos</strong> (marcar/quitar y solicitar desde ahí).</li>
-  <li><strong>Perfil</strong> y preferencias de notificación (app/correo).</li>
-</ul>
-
-<h3>👨‍⚕️ Médico</h3>
-<ul>
-  <li>Inicio con <strong>KPIs</strong> + “<strong>Citas de hoy</strong>”.</li>
-  <li><strong>Agenda calendario</strong>: confirmadas (bloquean), pendientes/propuestas resaltadas.</li>
-  <li><strong>Proponer</strong> fecha/hora, responder solicitudes, <strong>confirmar/reprogramar/cancelar</strong>.</li>
-  <li>Marcar <strong>ATENDIDA / NO_ASISTIÓ</strong>.</li>
-  <li><strong>Exportar</strong> historial por filtros (Excel).</li>
-  <li>Editar <strong>perfil profesional</strong> (CMP, especialidades, consultorio, duración de turno).</li>
-</ul>
-
-<h3>🛠️ Administrador</h3>
-<ul>
-  <li><strong>Dashboard</strong>: citas por período, médicos/pacientes activos, especialidades más demandadas, % confirmaciones/cancelaciones.</li>
-  <li><strong>Usuarios</strong>: crear/editar, activar/desactivar, eliminar; <strong>exportar Excel</strong> (por rol/estado/búsqueda).</li>
-  <li><strong>Citas</strong>: ver/filtrar por estado/fechas/médico/paciente; <strong>exportar Excel</strong>; forzar cancelación/reprogramación (<strong>auditado</strong>).</li>
-  <li><strong>Especialidades</strong>: CRUD.</li>
-  <li><strong>Notificaciones</strong>: listar, filtrar, reintentar fallidas, marcar leídas.</li>
-  <li><strong>Perfil admin</strong> y preferencias.</li>
-</ul>
-
-<p><a href="#top">⬆ Volver arriba</a></p>
-
-<hr/>
-
-<h2 id="requerimientos-no-funcionales">🧩 Requerimientos no funcionales</h2>
-<ul>
-  <li><strong>Usabilidad:</strong> UI responsiva y minimal; estados vacíos claros.</li>
-  <li><strong>Seguridad:</strong> Argon2id, CSRF, rate limiting, <strong>auditoría</strong> de acciones críticas.</li>
-  <li><strong>Rendimiento:</strong> T &lt; 2 s por request; <strong>paginación</strong> en listados.</li>
-  <li><strong>Disponibilidad:</strong> 99% + <strong>backups</strong> automáticos.</li>
-  <li><strong>Escalabilidad:</strong> REST desacoplado; <strong>caching selectivo</strong> (carrusel y especialidades).</li>
-  <li><strong>Mantenibilidad:</strong> Controller/Service/Repository; <strong>DTOs</strong>; <strong>Bean Validation</strong>.</li>
-  <li><strong>Compatibilidad:</strong> navegadores modernos + móvil.</li>
-  <li><strong>Observabilidad:</strong> <strong>logs estructurados</strong> y métricas (Spring Actuator).</li>
-</ul>
-<p><a href="#top">⬆ Volver arriba</a></p>
-
-<hr/>
-
-<h2 id="actores-y-casos-de-uso">👤 Actores y casos de uso</h2>
-<p><strong>Actores:</strong> Paciente, Médico, Administrador.</p>
-<p><strong>Paciente:</strong> Buscar médico · Ver perfil · Solicitar · Aceptar/Rechazar · Cancelar/Reprogramar · Mis Citas · Perfil · Favoritos · Notificaciones.</p>
-<p><strong>Médico:</strong> Agenda · Proponer · Confirmar/Cancelar/Reprogramar · Marcar Atención · Exportar · Perfil · Notificaciones.</p>
-<p><strong>Admin:</strong> Dashboard · Usuarios · Citas · Exportar · Especialidades · Notificaciones · Perfil.</p>
-<p><a href="#top">⬆ Volver arriba</a></p>
-
-<hr/>
-
-<h2 id="flujos-clave">🔄 Flujos clave (Mermaid)</h2>
-
-<h3>A) Reserva y negociación</h3>
-<pre><code class="language-mermaid">sequenceDiagram
-  participant P as Paciente
-  participant API as API Citas
-  participant M as Médico
-
-  P-&gt;&gt;API: POST /api/citas (SOLICITADA)
-  API--&gt;&gt;M: Notificación (SOLICITADA)
-  M-&gt;&gt;API: POST /api/citas/{id}/proponer (PROPUESTA)
-  API--&gt;&gt;P: Notificación (PROPUESTA)
-  P-&gt;&gt;API: POST /api/citas/{id}/aceptar (CONFIRMADA)
-  API--&gt;&gt;M: Actualiza agenda (bloquea slot)
-  M-&gt;&gt;API: POST /api/citas/{id}/marcar?estado=ATENDIDA|NO_ASISTIO
-</code></pre>
-
-<h3>B) Cancelación / Reprogramación</h3>
-<pre><code class="language-mermaid">flowchart LR
-  A[SOLICITADA] -- Cancelar ambos --&gt; X[Cancelada]
-  A -- Propuesta --&gt; B[PROPUESTA]
-  B -- Rechazar --&gt; C[EN_NEGOCIACION]
-  C -- Aceptar --&gt; D[CONFIRMADA]
-  D -- Reprogramar (cualquiera) --&gt; C
-  D -- Atendida / No asistió --&gt; H[Historial]
-</code></pre>
-
-<p><a href="#top">⬆ Volver arriba</a></p>
-
-<hr/>
-
-<h2 id="bd-19-tablas">🗄️ Diseño lógico de BD (19 tablas)</h2>
-<p><em>Cubre búsqueda por especialidad/nombre/rating, negociación (propuestas/mensajes), estados de cita, favoritos, notificaciones, exportes, agenda y seguridad (login + recuperación).</em></p>
-
-<h3>A) Seguridad &amp; cuentas (6)</h3>
-<ol>
-  <li><strong>usuario</strong> — <code>id_usuario</code> (PK), <code>email</code> (UNIQUE), <code>password_hash</code>, <code>nombres</code>, <code>apellidos</code>, <code>telefono</code>, <code>fecha_nacimiento</code>, <code>dni</code>, <code>foto_url</code>, <code>estado</code> (ACTIVO/INACTIVO), <code>fecha_creacion</code></li>
-  <li><strong>rol</strong> — <code>id_rol</code> (PK), <code>nombre</code> (PACIENTE/MEDICO/ADMIN)</li>
-  <li><strong>usuario_rol</strong> (N:M, PK compuesta) — <code>id_usuario</code> (FK), <code>id_rol</code> (FK)</li>
-  <li><strong>auth_login_intento</strong> — <code>id</code> (PK), <code>id_usuario</code> (FK), <code>ip</code>, <code>user_agent</code>, <code>exitoso</code> (bool), <code>timestamp</code></li>
-  <li><strong>auth_password_reset</strong> — <code>id</code> (PK), <code>id_usuario</code> (FK), <code>token</code> (UNIQUE), <code>expira_en</code>, <code>usado</code> (bool)</li>
-  <li><strong>preferencia_notificacion</strong> — <code>id</code> (PK), <code>id_usuario</code> (FK), <code>canal_app</code> (bool), <code>canal_email</code> (bool), <code>quiet_hours_json</code> (nullable)</li>
-</ol>
-
-<h3>B) Catálogos &amp; perfiles clínicos (5)</h3>
-<ol start="7">
-  <li><strong>especialidad</strong> — <code>id_especialidad</code> (PK), <code>nombre</code> (UNIQUE), <code>descripcion</code></li>
-  <li><strong>medico</strong> (perfil profesional; 1:1 con usuario) — <code>id_medico</code> (PK &amp; FK <code>usuario</code>), <code>consultorio</code>, <code>duracion_turno_min</code>, <code>valoracion_promedio</code> (denormalizado)</li>
-  <li><strong>medico_especialidad</strong> (N:M, PK compuesta) — <code>id_medico</code> (FK), <code>id_especialidad</code> (FK)</li>
-  <li><strong>paciente</strong> (perfil; 1:1 con usuario) — <code>id_paciente</code> (PK &amp; FK <code>usuario</code>), <code>contacto_emergencia</code>, <code>otros_datos_json</code> (nullable)</li>
-  <li><strong>favorito</strong> (PK compuesta) — <code>id_paciente</code> (FK), <code>id_medico</code> (FK), <code>fecha_agregado</code></li>
-</ol>
-
-<h3>C) Agenda, reservas y negociación (7)</h3>
-<ol start="12">
-  <li><strong>medico_horario</strong> — <code>id</code> (PK), <code>id_medico</code> (FK), <code>dia_semana</code> (0–6), <code>hora_inicio</code>, <code>hora_fin</code>, <code>slot_minutos</code></li>
-  <li><strong>medico_bloqueo</strong> — <code>id</code> (PK), <code>id_medico</code> (FK), <code>inicio</code> (datetime), <code>fin</code> (datetime), <code>motivo</code></li>
-  <li><strong>cita</strong> (núcleo) — <code>id_cita</code> (PK), <code>id_paciente</code> (FK), <code>id_medico</code> (FK), <code>fecha_hora</code> (nullable), <code>canal</code> (PRESENCIAL/TELECONSULTA), <code>motivo</code>, <code>estado</code> (SOLICITADA/PROPUESTA/EN_NEGOCIACION/CONFIRMADA/CANCELADA/ATENDIDA/NO_ASISTIO), <code>fecha_creacion</code></li>
-  <li><strong>cita_propuesta</strong> — <code>id_propuesta</code> (PK), <code>id_cita</code> (FK), <code>propuesto_por</code> (MEDICO/PACIENTE), <code>fecha_hora_propuesta</code>, <code>comentario</code>, <code>vigente</code> (bool), <code>timestamp</code></li>
-  <li><strong>cita_mensaje</strong> (diálogo) — <code>id_mensaje</code> (PK), <code>id_cita</code> (FK), <code>emisor</code> (PACIENTE/MEDICO/ADMIN), <code>mensaje</code>, <code>timestamp</code></li>
-  <li><strong>cita_historial</strong> (auditoría) — <code>id_historial</code> (PK), <code>id_cita</code> (FK), <code>antes</code>, <code>despues</code>, <code>actor</code> (PACIENTE/MEDICO/ADMIN), <code>comentario</code>, <code>timestamp</code></li>
-  <li><strong>valoracion</strong> (reseñas ⭐) — <code>id_valoracion</code> (PK), <code>id_cita</code> (FK), <code>puntuacion</code> (1–5), <code>comentario</code>, <code>fecha</code></li>
-  <li><strong>notificacion</strong> — <code>id_notificacion</code> (PK), <code>id_destinatario</code> (FK <code>usuario</code>), <code>tipo</code> (PROPUESTA/CONFIRMADA/CANCELADA/RECORDATORIO/...), <code>mensaje</code>, <code>leida</code> (bool), <code>fecha_envio</code>, <code>metadata_json</code> (nullable)</li>
-</ol>
-
-<p><a href="#top">⬆ Volver arriba</a></p>
-
-<hr/>
-
-<h2 id="endpoints-sugeridos">⚙️ Endpoints sugeridos</h2>
-
-<h3>Usuarios</h3>
-<pre><code>GET  /api/usuarios?rol=&amp;estado=&amp;q=&amp;page=&amp;size=
-POST /api/usuarios
-PUT  /api/usuarios/{id}
-DELETE /api/usuarios/{id}
-</code></pre>
-
-<h3>Especialidades</h3>
-<pre><code>GET  /api/especialidades
-POST /api/especialidades
-PUT  /api/especialidades/{id}
-DELETE /api/especialidades/{id}
-</code></pre>
-
-<h3>Médicos (listado/carrusel/búsqueda)</h3>
-<pre><code>GET /api/medicos?especialidad=&amp;q=&amp;minRating=&amp;page=&amp;size=
-</code></pre>
-
-<h3>Favoritos</h3>
-<pre><code>GET    /api/favoritos
-POST   /api/favoritos
-DELETE /api/favoritos/{idMedico}
-</code></pre>
-
-<h3>Citas (paciente)</h3>
-<pre><code>POST /api/citas                           # crea SOLICITADA
-GET  /api/mis-citas?estado=&amp;page=&amp;size=
-POST /api/citas/{id}/aceptar
-POST /api/citas/{id}/rechazar
-POST /api/citas/{id}/cancelar
-POST /api/citas/{id}/reprogramar          # crea nueva cita_propuesta
-</code></pre>
-
-<h3>Citas (médico)</h3>
-<pre><code>GET  /api/agenda?desde=&amp;hasta=
-POST /api/citas/{id}/proponer
-POST /api/citas/{id}/confirmar
-POST /api/citas/{id}/marcar?estado=ATENDIDA|NO_ASISTIO
-</code></pre>
-
-<h3>Negociación (mensajes/propuestas)</h3>
-<pre><code>GET  /api/citas/{id}/mensajes
-POST /api/citas/{id}/mensajes
-GET  /api/citas/{id}/propuestas
-POST /api/citas/{id}/propuestas
-</code></pre>
-
-<h3>Notificaciones</h3>
-<pre><code>GET  /api/notificaciones?soloNoLeidas=
-PUT  /api/notificaciones/{id}/leer
-GET  /api/notificaciones/preferencias
-PUT  /api/notificaciones/preferencias
-</code></pre>
-
-<p><a href="#top">⬆ Volver arriba</a></p>
-
-<hr/>
-
-<h2 id="exportaciones-excel">📤 Exportaciones Excel</h2>
-
-<p><strong>Usuarios</strong></p>
-<pre><code>GET /api/usuarios/exportar?rol=&amp;estado=&amp;q=
-</code></pre>
-<p><strong>Nombre sugerido:</strong> <code>usuarios_[filtro]_[YYYY-MM-DD].xlsx</code></p>
-
-<p><strong>Citas</strong></p>
-<pre><code>GET /api/citas/exportar?estado=&amp;desde=&amp;hasta=&amp;paciente=&amp;medico=
-</code></pre>
-<p><strong>Nombre sugerido:</strong> <code>citas_[filtro]_[YYYY-MM-DD].xlsx</code></p>
-
-<p><strong>Ejemplos (curl)</strong></p>
-<pre><code># Exportar solo médicos activos que contengan "pedi" en búsqueda
-curl -L "https://tu-api.com/api/usuarios/exportar?rol=MEDICO&amp;estado=ACTIVO&amp;q=pedi" -o usuarios_medicos_$(date +%F).xlsx
-
-# Exportar citas confirmadas del mes
-curl -L "https://tu-api.com/api/citas/exportar?estado=CONFIRMADA&amp;desde=2025-11-01&amp;hasta=2025-11-30" -o citas_confirmadas_$(date +%F).xlsx
-</code></pre>
-
-<p><a href="#top">⬆ Volver arriba</a></p>
-
-<hr/>
-
-<h2 id="indices-rendimiento">⚡ Índices &amp; reglas de rendimiento</h2>
-<ul>
-  <li><strong>Búsqueda:</strong>
-    <ul>
-      <li><code>usuario(apellidos, nombres)</code> compuesto</li>
-      <li><code>especialidad(nombre)</code></li>
-      <li><code>medico(valoracion_promedio)</code></li>
-    </ul>
-  </li>
-  <li><strong>Citas:</strong>
-    <ul>
-      <li><code>cita(id_medico, fecha_hora, estado)</code></li>
-      <li><code>cita(id_paciente, estado)</code></li>
-    </ul>
-  </li>
-  <li><strong>Mensajes/Historial:</strong>
-    <ul>
-      <li><code>cita_mensaje(id_cita, timestamp)</code></li>
-      <li><code>cita_historial(id_cita, timestamp)</code></li>
-    </ul>
-  </li>
-  <li><strong>Notificaciones:</strong>
-    <ul>
-      <li><code>notificacion(id_destinatario, leida, fecha_envio)</code></li>
-    </ul>
-  </li>
-  <li><strong>Rating consistente:</strong> servicio/trigger que recalcula <code>medico.valoracion_promedio</code> al insertar en <code>valoracion</code>.</li>
-</ul>
-
-<p><a href="#top">⬆ Volver arriba</a></p>
+    </div>
+  </main>
+</div>
+</body>
+</html>
